@@ -1,0 +1,7 @@
+node_modules
+build
+.terraform
+.terraform.lock.hcl
+backend.tf
+.env
+.venv

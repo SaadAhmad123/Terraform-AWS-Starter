@@ -1,0 +1,48 @@
+name: Deploy NonProd branch
+
+on:
+  push:
+    branches: [np]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18.9.0"
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get install python3-setuptools
+          python3 -m pip install --user awscli
+        shell: bash
+
+      - name: Create temporary tfvars file
+        run: |
+          echo "stage=\"$STAGE\"" >> ./terraform/terraform.tfvars
+          echo "AWS_ACCESS_KEY=\"$AWS_ACCESS_KEY\"" >> ./terraform/terraform.tfvars
+          echo "AWS_SECRET_KEY=\"$AWS_SECRET_KEY\"" >> ./terraform/terraform.tfvars
+          echo "AWS_REGION=\"$AWS_REGION\"" >> ./terraform/terraform.tfvars
+          echo "PROJECT_NAME=\"$PROJECT_NAME\"" >> ./terraform/terraform.tfvars
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          PROJECT_NAME: "mai"
+          STAGE: "np"
+        shell: bash
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: |
+          bash shell_run.sh -f "shell_tf_init.sh" -v "shell_tf_env.sh"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve

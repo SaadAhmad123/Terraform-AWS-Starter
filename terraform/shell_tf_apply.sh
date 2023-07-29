@@ -1,0 +1,1 @@
+bash ./shell_run.sh -c "terraform apply" -v "shell_tf_env.sh,shell_tf_init.sh"

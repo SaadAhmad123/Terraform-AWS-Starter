@@ -1,0 +1,57 @@
+stages:
+  - prepare
+  - init
+  - apply
+
+variables:
+  NODE_VERSION: "18.9.0"
+  AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+  AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  PROJECT_NAME: "mai"
+
+.prepare_template: &prepare
+  stage: prepare
+  script:
+    - apt-get update -y && apt-get install -y python3-setuptools
+    - python3 -m pip install --user awscli
+    - echo "stage=\"$STAGE\"" >> ./terraform/terraform.tfvars
+    - echo "AWS_ACCESS_KEY=\"$AWS_ACCESS_KEY\"" >> ./terraform/terraform.tfvars
+    - echo "AWS_SECRET_KEY=\"$AWS_SECRET_KEY\"" >> ./terraform/terraform.tfvars
+    - echo "AWS_REGION=\"$AWS_REGION\"" >> ./terraform/terraform.tfvars
+    - echo "PROJECT_NAME=\"$PROJECT_NAME\"" >> ./terraform/terraform.tfvars
+
+prepare:dev:
+  <<: *prepare
+  variables:
+    STAGE: "dev"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev"'
+
+prepare:np:
+  <<: *prepare
+  variables:
+    STAGE: "np"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "np"'
+
+prepare:master:
+  <<: *prepare
+  variables:
+    STAGE: "prod"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+
+init:
+  stage: init
+  script:
+    - bash shell_run.sh -f "shell_tf_init.sh" -v "shell_tf_env.sh"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev" || $CI_COMMIT_REF_NAME == "np" || $CI_COMMIT_REF_NAME == "master"'
+
+apply:
+  stage: apply
+  script:
+    - terraform apply -auto-approve
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev" || $CI_COMMIT_REF_NAME == "np" || $CI_COMMIT_REF_NAME == "master"'
