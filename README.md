@@ -52,11 +52,19 @@ To get started, follow the steps outlined below.
 
 Congratulations, your project is now ready to go!
 
+
 ### Project Structure
 
 This project assumes the existence of three branches: `dev`, `np` (nonprod), and `prod` (the master branch). It is recommended not to alter these names. However, adding a new environment is straightforward. Extend the remote backend, then in `./terraform/.backends` configure the backend in the file `<environment_name>.tf.txt`.
 
 While this project does not assume any CI/CD, a sample GitHub workflow is provided in `./.github_ci_cd`. This pipeline is ready to use and can be enabled by changing the name from `./.github_ci_cd` to `./.github`. In case of Gitlab, the CI/CD YAML is in `./.gitlab_ci_cd/.gitlab-ci.yml` copy it to `./.gitlab-ci.yml`. 
+
+### Environment setup for Git CI/CD 
+
+In order to setup the Git CI/CD you can look inside the pipeline code and
+provide the required variables to the git platfrom. These can be found in 
+script `./.github_ci_cd/workflows/<env>.yml` (~ line 23 - name: Create temporary tfvars file).
+For `./.gitlab_ci_cd/.gitlab-ci.yml`, these can be found in (~ line 13 - .prepare_template: &prepare).
 
 ### Additional Resources
 
