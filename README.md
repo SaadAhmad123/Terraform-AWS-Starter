@@ -53,11 +53,53 @@ To get started, follow the steps outlined below.
 Congratulations, your project is now ready to go!
 
 
-### Project Structure
+### Enhanced Project Structure Explanation
 
-This project assumes the existence of three branches: `dev`, `np` (nonprod), and `prod` (the master branch). It is recommended not to alter these names. However, adding a new environment is straightforward. Extend the remote backend, then in `./terraform/.backends` configure the backend in the file `<environment_name>.tf.txt`.
+The AWS Terraform Project Starter is structured to support multiple development stages, ensuring flexibility and scalability in your cloud infrastructure management. Here's a detailed guide on understanding and customizing the project structure:
 
-While this project does not assume any CI/CD, a sample GitHub workflow is provided in `./.github_ci_cd`. This pipeline is ready to use and can be enabled by changing the name from `./.github_ci_cd` to `./.github`. In case of Gitlab, the CI/CD YAML is in `./.gitlab_ci_cd/.gitlab-ci.yml` copy it to `./.gitlab-ci.yml`. 
+#### Standard Branch Structure
+
+1. **Default Branches**: Our project is pre-configured with three primary branches:
+   - `dev` (Development)
+   - `np` (Non-Production)
+   - `prod` (Production, serves as the master branch)
+
+   These branches are integral to the project's workflow, and it's advisable to retain their names for consistency.
+
+2. **Adding New Environments**: To introduce additional environments:
+   - Modify the `terraform_remote_backend.tf` file within the `./terraform_remote_backend` directory. Add your new environment name to the `environments` local variable:
+
+     ```hcl
+     locals {
+       environments = ["dev", "np", "prod", "<new_environment>"]
+     }
+     ```
+
+   - In the `./terraform/.backends` directory, create a file named `<new_environment>.tf.txt` and configure your Terraform backend settings as follows:
+
+     ```hcl
+     terraform {
+      backend "s3" {
+         bucket         = "{{project_name}}-terraform-state"
+         key            = "<new_environment>/global/s3/terraform.tfstate"
+         region         = "ap-southeast-2"
+         dynamodb_table = "{{project_name}}-terraform-locks"
+         encrypt        = true
+       }
+     }
+     ```
+
+   - Update the `stage` variable in `./terraform/terraform.tfvars` to your new environment name when you wish to deploy to this environment.
+
+#### CI/CD Pipeline Integration
+
+This start does not assume any CI/CD pipeline. However, two basic pipelines are provided for guidance and quick usage:
+
+- **GitHub Workflows**: A sample GitHub Actions workflow is included in `./.github_ci_cd`. To activate this workflow, simply rename the directory to `./.github`.
+
+- **GitLab CI/CD**: For GitLab users, the CI/CD configuration is available in `./.gitlab_ci_cd/.gitlab-ci.yml`. Copy this file to `./.gitlab-ci.yml` to enable the pipeline in your GitLab project.
+
+These CI/CD configurations are designed to be flexible and easily adaptable to your specific requirements, ensuring a seamless integration into your existing development workflow.
 
 ### Environment setup for Git CI/CD 
 
